@@ -1,0 +1,30 @@
+---
+- name: Deploy PHP Application and LAMP Stack
+  hosts: slave
+  become: yes
+
+  tasks:
+    - name: Copy the PHP application deployment script
+      copy:
+        src: /home/vagrant/LAMP.sh
+        dest: /tmp/script.sh
+        mode: '0755'
+
+    - name: Execute the deployment script
+      command: /tmp/script.sh
+      become: yes
+
+    - name: Set VM_IP variable
+      set_fact:
+        VM_IP: "192.168.56.6"
+
+    - name: Verify Laravel application accessibility
+      uri:
+        url: "http://{{ VM_IP }}"
+        status_code: 200
+      register: app_access
+
+    - name: Fail if Laravel application is not accessible
+      fail:
+        msg: "Laravel application is not accessible through the VM's IP address."
+      when: app_access.status != 200
