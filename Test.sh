@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # Define variables
 GITHUB_REPO="https://github.com/laravel/laravel.git"
@@ -95,7 +95,7 @@ log "Laravel project cloned, permissions have been set, and directories have bee
 log "Configuring Apache to serve the PHP application..."
 echo "<VirtualHost *:80>
     ServerAdmin segeboi@gmail.com
-    ServerName 192.168.56.6
+    ServerName 192.168.56.5
     DocumentRoot /var/www/html/laravel/public
 
     <Directory /var/www/html/laravel/>
@@ -134,7 +134,7 @@ sudo mysql -e "FLUSH PRIVILEGES"
 log "Replacing values in .env file..."
 sudo sed -i 's/^APP_ENV=.*/APP_ENV=production/' /var/www/html/laravel/.env
 sudo sed -i 's/^APP_DEBUG=.*/APP_DEBUG=false/' /var/www/html/laravel/.env
-sudo sed -i 's/^APP_URL=.*/APP_URL=http:\/\/192.168.56.6/' /var/www/html/laravel/.env
+sudo sed -i 's/^APP_URL=.*/APP_URL=http:\/\/192.168.56.5/' /var/www/html/laravel/.env
 sudo sed -i 's/^DB_HOST=.*/DB_HOST=localhost/' /var/www/html/laravel/.env
 sudo sed -i 's/^DB_DATABASE=.*/DB_DATABASE='$DB_NAME'/' /var/www/html/laravel/.env
 sudo sed -i 's/^DB_USERNAME=.*/DB_USERNAME='$DB_USER'/' /var/www/html/laravel/.env
@@ -149,7 +149,7 @@ cd /var/www/html/laravel || exit
 sudo php artisan config:cache
 
 # Run database migrations
-sudo php artisan migrate --force
+sudo php artisan migrate- --force
 
 # Start a new tmux session
 tmux new-session -d -s laravel-server

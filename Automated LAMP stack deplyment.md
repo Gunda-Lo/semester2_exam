@@ -1,48 +1,73 @@
-Automated LAMP stack deplyment on a slave node from the master, with a cloned GitHub php repo, deployed using Ansible
+Automated LAMP Stack Deployment with Ansible
+This guide outlines the process of automating the deployment of a LAMP (Linux, Apache, MySQL, PHP) stack on a "slave" node from a "master" node. It also includes instructions for copying files between nodes, configuring SSH, and using Ansible for provisioning.
 
-First you write a bash script to provision two virtual machines, designatingone as 'master'and the other as 'slave'.
-Link to vagrantfile: [Vagrantfile](/vagrantfile.sh)
+Provisioning Virtual Machines
+To begin, a Bash script is used to provision two virtual machines, designating one as the "master" and the other as the "slave." The script also configures the IP addresses and passwords for these VMs. The Vagrantfile used for this setup can be found here.
 
-Then you copy the files you would like to use from the host machine to the master node:
-sudo scp /path/to/local/file/filename master:/destination/path/on/vm
+Accessing the Master Node
+After provisioning the virtual machines, files are copied from the host machine to the master node using the scp command. An example command might look like:
 
-Next you access the master node using thsi command:
+scp /path/to/local/file/filename vagrant@master:/destination/path/on/vm
+
+Next, you access the master node using the following command:
+
 vagrant ssh master
 
-Then you install ansible on the master node:
+Restart the system
+sudo reboot
+
+Wait a minute and relogin using the vagrant command above
+
+Installing Ansible
+Ansible is installed on the master node by updating the package list and then installing Ansible:
+
 sudo apt update
 sudo apt install ansible -y
 
-To ensure passwordless communication between the master and slave we nedd to configure ssh key-based authentication
-ssh-keygen
-ssh-copy-id vagrant@192.168.56.6
+SSH Key-Based Authentication
+To ensure passwordless communication between the master and slave nodes, SSH key-based authentication is set up. The following steps are performed:
 
-As we copied the scripts from a windows environment to a unix environment, we need to install a file converter, to make the scripts editable.
+Generate an SSH key pair:
+
+ssh-keygen -t rsa -b 4096
+
+Copy the public key to the slave node:
+
+ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.56.6
+
+File Conversion
+Since the scripts are copied from a Windows environment to a Unix environment, a file converter (dos2unix) is installed to make the scripts editable:
+
 sudo apt install dos2unix -y
 
-Convert the necessary files to unix format
-dos2unix ~/LAMP.sh
+Then, convert the necessary files to Unix format:
 
+dos2unix ~/LAMP.sh
 dos2unix ~/lamp_setup.yaml
 
-Create your ansible inventory file:
+Ansible Inventory File
+Create an Ansible inventory file (my_inventory.ini) to specify the target slave node:
+
 echo "[slave]
 192.168.56.6 ansible_ssh_user=vagrant ansible_ssh_private_key_file=~/.ssh/id_rsa" > my_inventory.ini
 
-Execute the playbook:
+Executing the Ansible Playbook
+Execute the Ansible playbook to automate the LAMP stack setup:
+
 ansible-playbook -i my_inventory.ini lamp_setup.yaml
-![slave-monitor](/slave-monitor.png)
-![terminal-monitor](/terminal-monitor.png)
 
-Link to playbook: [ansible](/lamp_setup.yaml)
-Link to LAMP script: [LAMP](/LAMP.sh)
+Verifying the Deployment
+After running the playbook, the LAMP stack should be set up on the slave node. You can verify it by creating a PHP file in the default web server root directory. SSH into the slave node:
 
-SSH into the slave, create a php file in the defeault web server root directory.
 ssh vagrant@192.168.56.6
 
-echo "<?php phpinfo(); ?>" | sudo tee /var/www/html/phpinfo.php
+To test Laravel deployment on the slave node's IP address in a web browser connected on the host only network. (e.g., http://192.168.56.6)
 
-Verify the apche2 and php installation
-Type the ip address of the slave node in the web browser of the remote server 192.168.56.6, to test php, add the name of the php file earlier created: 192.168.56.6./phpinfo.php
-![apache-test](/apache2-test.png)
-![php-test](/php-test.png)
+That's it! The deployment of the LAMP stack and testing has been successfully automated using Ansible.
+
+Links
+[Vagrantfile](/vagrantfile.sh)
+[Ansible Playbook](/lamp_setup.yaml)
+[LAMP Stack Setup Script](/LAMP.sh)
+[Laravel Test page](/laravel.png)
+[Play screen](/playbook.png)

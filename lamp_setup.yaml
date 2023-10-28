@@ -2,7 +2,6 @@
 - name: Deploy PHP Application and LAMP Stack
   hosts: slave
   become: yes
-
   tasks:
     - name: Copy the PHP application deployment script
       copy:
@@ -28,3 +27,15 @@
       fail:
         msg: "Laravel application is not accessible through the VM's IP address."
       when: app_access.status != 200
+
+    - name: Update Laravel Application Timezone
+      lineinfile:
+        path: /var/www/html/laravel/config/app.php
+        regexp: '^\s*"timezone" => (.*)'
+        line: '    "timezone" => "Africa/Lagos",'
+
+    - name: Add a cron job to check server uptime
+      cron:
+        name: "Check Server Uptime"
+        job: "0 0 * * * uptime > /home/vagrant/uptime.log"
+        user: vagrant
